@@ -7,6 +7,13 @@ with a list, a map and a "Didn't qualify" tab. Nothing is posted anywhere: every
 With no interests set, it keeps every event from your sources in one **All events** section.
 It runs once and exits; running it automatically every day is optional (see [step 6](#6-optional-run-it-on-a-schedule)).
 
+| Events list | Map |
+|---|---|
+| ![The events page: filter chips for each section, and event cards grouped by day](docs/images/demo-list.webp) | ![The map tab: colored pins and clusters across NYC, New Jersey, Westchester and Long Island](docs/images/demo-map.webp) |
+
+*Screenshots of `nymetro_eventlocator demo`: made-up events with the sections from
+[examples/config.filtered.yaml](examples/config.filtered.yaml).*
+
 The included example covers the **New York metro area**: the Census "New York–Newark–Jersey City"
 metro area, meaning NYC, Long Island, Westchester/Rockland/Putnam and 12 northern and central New Jersey
 counties. Everything is configured in one YAML file.
@@ -20,6 +27,32 @@ counties. Everything is configured in one YAML file.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it works.
 
+## Quick start
+```sh
+git clone https://github.com/brandonwan1/nymetro_eventlocator.git
+cd nymetro_eventlocator
+python3 -m venv .venv && . .venv/bin/activate       # Windows: py -m venv .venv  then  .venv\Scripts\Activate.ps1
+pip install -r requirements.lock && pip install --no-deps .
+
+nymetro_eventlocator demo --open                    # 1. a sample page right away: made-up events, nothing fetched
+nymetro_eventlocator init                           # 2. create your config.yaml (NY metro area, keeps every event)
+nymetro_eventlocator add https://www.meetup.com/<group-name>/   # 3. add each calendar you follow
+nymetro_eventlocator run                            # 4. fetch events (one pass, then it exits)
+nymetro_eventlocator render --open                  # 5. open your page
+```
+What you should see:
+```text
+$ nymetro_eventlocator demo --open
+wrote output/demo.html: 15 sample events, 6 in the "Didn't qualify" tab (all made up, nothing fetched)
+$ nymetro_eventlocator run
+ical: 19 parsed
+kept 19 (19 new), swept 0 stale; 26 requests, 0 robots-skipped
+Rejected 0
+```
+Want sections (like the screenshots) instead of one list? Start from
+[examples/config.filtered.yaml](examples/config.filtered.yaml); see [Customizing your interests](#customizing-your-interests).
+The numbered steps below explain each part in more detail.
+
 ---
 
 ## Requirements
@@ -32,7 +65,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it works.
 
 ## 1. Get the code
 ```sh
-git clone <repo-url> nymetro_eventlocator
+git clone https://github.com/brandonwan1/nymetro_eventlocator.git
 cd nymetro_eventlocator
 ```
 
@@ -153,6 +186,7 @@ Run these from the `nymetro_eventlocator` folder with the environment activated.
 
 | Command | What it does |
 |---|---|
+| `nymetro_eventlocator demo --open` | Build a sample page from made-up events and open it: no config, keys or network needed |
 | `nymetro_eventlocator init` | Create a starter `config.yaml` (`--force` replaces an existing one, keeping a backup) |
 | `nymetro_eventlocator add <link>` | Add a Meetup group, Luma calendar or `.ics` link: preview, then add on confirmation (`--category`, `--name`, `--yes`) |
 | `nymetro_eventlocator check-config` | Validate `config.yaml` and say what's wrong, if anything |
@@ -185,6 +219,8 @@ Run these from the `nymetro_eventlocator` folder with the environment activated.
 | `-v` | Verbose logging |
 
 ## Customizing your interests
+A complete, commented example with filtering is in [examples/config.filtered.yaml](examples/config.filtered.yaml)
+(the same sections as `nymetro_eventlocator demo`).
 Everything below is in `config.yaml`; no code changes needed. After any edit, run `nymetro_eventlocator check-config`:
 it catches unknown sections and bad patterns.
 

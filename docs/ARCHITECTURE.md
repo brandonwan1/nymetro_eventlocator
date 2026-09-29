@@ -15,7 +15,7 @@ config.yaml ─► config.py ─ validates; resolves ${SECRETS} via secrets.py (
 
 | Piece | File(s) | What it does |
 |---|---|---|
-| CLI | `nymetro_eventlocator/cli/` (one module per command) | Commands: `init`, `add`, `run`, `scrape`, `render`, `rejected`, `secrets`, `schedule`, `robots`, `check-config` |
+| CLI | `nymetro_eventlocator/cli/` (one module per command) | Commands: `demo`, `init`, `add`, `run`, `scrape`, `render`, `rejected`, `secrets`, `schedule`, `robots`, `check-config` |
 | Config | `nymetro_eventlocator/config.py`, `config.yaml` | Region, groups (page sections), categories (keywords/patterns), sources. Validated with clear errors. No categories = catch-all: a built-in "All events" section keeps every event that passes the safety filters. |
 | Secrets | `nymetro_eventlocator/secrets.py` | Resolves `${VAR}`: systemd hand-over → chosen backend (keyring / systemd-creds / env) → environment. Values are never logged. |
 | Polite gateway | `nymetro_eventlocator/http/polite.py` | robots.txt (cached 24 h, RFC 9309 rules), per-host delay (site's `Crawl-delay`, else 5 s), 429/503 `Retry-After`, conditional requests, secret masking. A test fails if any other module imports an HTTP library. |

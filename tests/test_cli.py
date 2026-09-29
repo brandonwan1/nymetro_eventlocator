@@ -11,7 +11,7 @@ def test_every_command_module_is_complete_and_unique():
     assert len(names) == len(set(names))
     for c in COMMANDS:
         assert callable(c.add_parser) and callable(c.run) and isinstance(c.NEEDS_CONFIG, bool), c.__name__
-    assert {c.NAME for c in COMMANDS if not c.NEEDS_CONFIG} == {"init", "secrets"}  # work before a config exists
+    assert {c.NAME for c in COMMANDS if not c.NEEDS_CONFIG} == {"demo", "init", "secrets"}  # work before a config exists
 
 
 @pytest.mark.parametrize("name", [c.NAME for c in COMMANDS])

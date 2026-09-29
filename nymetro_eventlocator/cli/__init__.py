@@ -13,12 +13,12 @@ import logging
 import sys
 
 from nymetro_eventlocator import __version__
-from nymetro_eventlocator.cli import (add, check_config, init, rejected, render, robots, run, schedule, scrape,
-                                      secrets)
+from nymetro_eventlocator.cli import (add, check_config, demo, init, rejected, render, robots, run, schedule,
+                                      scrape, secrets)
 from nymetro_eventlocator.config import ConfigError, load_config
 
 # Order = order in `--help`.
-COMMANDS = [init, add, run, scrape, render, rejected, check_config, secrets, schedule, robots]
+COMMANDS = [demo, init, add, run, scrape, render, rejected, check_config, secrets, schedule, robots]
 
 
 def build_parser() -> argparse.ArgumentParser:

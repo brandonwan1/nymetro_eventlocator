@@ -4,6 +4,10 @@ All notable changes to this project. The format follows [Keep a Changelog](https
 and versions follow [Semantic Versioning](https://semver.org/) (`nymetro_eventlocator --version` shows yours).
 
 ## [Unreleased]
+### Added
+- `nymetro_eventlocator demo`: a sample page from made-up events, with no setup, keys or network.
+- `examples/config.filtered.yaml`: a complete, commented config with interest filtering.
+- README: screenshots and a quick start.
 
 ## [0.1.0] - unreleased (first public version)
 ### Added
