@@ -12,6 +12,7 @@ Simplified with shapely; see `nymetro_eventlocator/geo/data/SOURCE.md`.
 Data fetched at run time (not bundled) comes under each provider's own terms:
 - **Meetup and Luma** group/calendar iCal feeds.
 - Any other iCal feed you add, under that site's terms.
+- `demo --live` only: the public iCal calendars of Hicksville Public Library and West Hempstead Public Library (LibCal).
 - **Ticketmaster Discovery API** and **Eventbrite API:** your own keys, under their API terms.
 - **confs.tech conference data** (github.com/tech-conferences/conference-data, MIT).
 - **Geocoding:** NYC GeoSearch (NYC Planning) and the US Census geocoder.

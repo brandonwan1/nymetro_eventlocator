@@ -6,6 +6,7 @@ and versions follow [Semantic Versioning](https://semver.org/) (`nymetro_eventlo
 ## [Unreleased]
 ### Added
 - `nymetro_eventlocator demo`: a sample page from made-up events, with no setup, keys or network.
+  `demo --live` shows real events instead, from two public library calendars (audited in docs/sources-compliance.md).
 - `examples/config.filtered.yaml`: a complete, commented config with interest filtering.
 - README: screenshots and a quick start.
 

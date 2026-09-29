@@ -33,6 +33,7 @@ Legend: ✅ allowed · ⚠️ allowed with conditions or needs your decision · 
 | Time Out NYC | ❌ | — | — |
 | SeatGeek API | ❌ by default | — | — |
 | confs.tech conference data | ✅ | open-data JSON | conferences by topic |
+| Public library calendars (LibCal), used by `demo --live` | ✅ | iCal feed per library | general library programs |
 
 ## Details
 
@@ -137,3 +138,23 @@ Many venues' terms forbid automated access even when robots.txt allows it; when 
 ## Conference data (audited 2026-09-25)
 - **confs.tech (✅):** github.com/tech-conferences/conference-data, MIT-licensed open data published for reuse. raw.githubusercontent.com has no robots.txt, so the 5s delay applies. Topics are configured per user (`sources.confstech.topics`).
 - **Sites that only offer RSS:** not built as sources; follow them in an RSS reader.
+
+## Public library calendars for `demo --live` (audited 2026-09-29)
+`nymetro_eventlocator demo --live` shows real events without any setup, so it needs general-interest sources that
+reflect no one's personal picks. It fetches each feed once per demo run (plus robots.txt), stores nothing, and shows
+the next 14 days.
+
+| Library | Feed | robots.txt | Terms |
+|---|---|---|---|
+| Hicksville Public Library (Nassau County) | `https://hicksvillelibrary.libcal.com/ical_subscribe.php?src=p&cid=18197` | allows it; `Crawl-delay: 10` (honored) | no terms page on the calendar site |
+| West Hempstead Public Library (Nassau County) | `https://whplibrary.libcal.com/ical_subscribe.php?src=p&cid=21141` | allows it; `Crawl-delay: 10` (honored) | no terms page on the calendar site |
+
+- **Interface:** each library's calendar page (Springshare LibCal) offers an iCal subscription ("To subscribe to this
+  calendar, copy the link below into any application that supports the iCal format"). That is the feed rung, the
+  interface the libraries publish for exactly this use. The calendar id was read once from the page, the same as
+  clicking "Subscribe".
+- **Locations:** the feeds give only a room name ("Community Room"), so the demo adds the library's street address
+  and coordinates. Addresses were confirmed from independent listings and geocoded with the US Census geocoder:
+  169 Jerusalem Ave, Hicksville, NY 11801 (40.76209, -73.52336); 500 Hempstead Ave, West Hempstead, NY 11552
+  (40.69616, -73.65423).
+- **Content:** public program listings (story times, classes, clubs). No personal data beyond what the libraries publish.

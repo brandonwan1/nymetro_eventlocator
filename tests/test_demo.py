@@ -46,3 +46,64 @@ def test_example_config_matches_the_demo():
         assert raw[key] == demo.DEMO_INTERESTS[key], key
     cfg = load_config(ROOT / "examples" / "config.filtered.yaml")
     assert not cfg.catch_all and cfg.categories[-1].fallback
+
+
+# --- demo --live (tests use a local server with made-up feeds; no internet) ---------------------------
+
+def _libcal_like_ics(days_ahead: int = 2) -> str:
+    """Shaped like a LibCal feed: the location is only a room name."""
+    from datetime import UTC, datetime, timedelta
+    start = (datetime.now(UTC) + timedelta(days=days_ahead)).strftime("%Y%m%dT150000Z")
+
+    def ev(uid, title, extra=""):
+        return (f"BEGIN:VEVENT\r\nUID:{uid}\r\nSUMMARY:{title}\r\nDTSTART:{start}\r\n"
+                f"LOCATION:Community Room\r\nURL:https://example.libcal.com/event/{uid}\r\n{extra}END:VEVENT\r\n")
+
+    return ("BEGIN:VCALENDAR\r\nVERSION:2.0\r\n" + ev("1", "Knitting circle") + ev("2", "Film afternoon")
+            + ev("3", "Story time", "STATUS:CANCELLED\r\n") + "END:VCALENDAR\r\n")
+
+
+def _live_client(store):
+    from nymetro_eventlocator.config import HttpSettings
+    from nymetro_eventlocator.http.polite import PoliteClient
+    return PoliteClient(store, HttpSettings(), sleep=lambda s: None)
+
+
+def test_live_demo_gives_events_their_librarys_location(tmp_path, httpserver, store):
+    httpserver.expect_request("/robots.txt").respond_with_data("User-agent: *\nAllow: /\n")
+    httpserver.expect_request("/lib.ics").respond_with_data(_libcal_like_ics(), content_type="text/calendar")
+    feeds = [{"name": "example-lib", "label": "Example Public Library", "url": httpserver.url_for("/lib.ics"),
+              "address": "1 Example Ave, Hicksville, NY 11801", "coords": (40.76209, -73.52336)}]
+    client = _live_client(store)
+    path, shown, rejected, report = demo.build_live(tmp_path / "live.html", client, feeds)
+    client.close()
+    data = page_data(path)
+    assert shown == 2 and report == ["Example Public Library: 2 upcoming events"]
+    assert list(data["groups"]) == ["all"]                                          # keep-everything mode
+    e = data["events"][0]
+    assert e["venue"].startswith("Example Public Library (Community Room)") and e["area"] == "Nassau County"
+    assert [r["reason"] for r in data["rejections"]] == ["cancelled"]
+
+
+def test_live_demo_reports_a_failed_feed_and_keeps_going(tmp_path, httpserver, store):
+    httpserver.expect_request("/robots.txt").respond_with_data("", status=404)
+    httpserver.expect_request("/ok.ics").respond_with_data(_libcal_like_ics(), content_type="text/calendar")
+    httpserver.expect_request("/gone.ics").respond_with_data("not here", status=404)
+    base = {"address": "1 Example Ave, Hicksville, NY 11801", "coords": (40.76209, -73.52336)}
+    feeds = [{"name": "gone", "label": "Gone Library", "url": httpserver.url_for("/gone.ics"), **base},
+             {"name": "ok", "label": "Working Library", "url": httpserver.url_for("/ok.ics"), **base}]
+    client = _live_client(store)
+    _, shown, _, report = demo.build_live(tmp_path / "live.html", client, feeds)
+    client.close()
+    assert shown == 2 and report == ["Gone Library: HTTP 404", "Working Library: 2 upcoming events"]
+
+
+def test_live_feeds_are_audited_official_feeds_inside_the_region():
+    from nymetro_eventlocator.geo.enrich import in_bbox
+    from nymetro_eventlocator.wizard import BASE
+    bbox = tuple(BASE["region"]["bbox"])
+    for f in demo.LIVE_FEEDS:
+        assert f["url"].startswith("https://") and "ical_subscribe.php" in f["url"]   # the libraries' own iCal feeds
+        assert in_bbox(*f["coords"], bbox), f["name"]
+    compliance = (ROOT / "docs" / "sources-compliance.md").read_text(encoding="utf-8")
+    assert all(f["label"] in compliance for f in demo.LIVE_FEEDS)                    # every live source is audited

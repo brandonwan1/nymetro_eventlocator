@@ -33,7 +33,7 @@ DEFAULT_MAP = {
 
 
 SOURCE_LABELS = {"meetup.com": "Meetup", "lu.ma": "Luma", "luma.com": "Luma", "ticketmaster.com": "Ticketmaster",
-                 "ticketweb.com": "Ticketmaster", "eventbrite.com": "Eventbrite"}
+                 "ticketweb.com": "Ticketmaster", "eventbrite.com": "Eventbrite", "libcal.com": "Library calendar"}
 
 
 def source_label(e: Event) -> str:

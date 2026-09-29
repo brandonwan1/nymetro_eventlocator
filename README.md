@@ -35,6 +35,7 @@ python3 -m venv .venv && . .venv/bin/activate       # Windows: py -m venv .venv 
 pip install -r requirements.lock && pip install --no-deps .
 
 nymetro_eventlocator demo --open                    # 1. a sample page right away: made-up events, nothing fetched
+                                                    #    (or `demo --live --open`: real events from two public libraries)
 nymetro_eventlocator init                           # 2. create your config.yaml (NY metro area, keeps every event)
 nymetro_eventlocator add https://www.meetup.com/<group-name>/   # 3. add each calendar you follow
 nymetro_eventlocator run                            # 4. fetch events (one pass, then it exits)
@@ -187,6 +188,7 @@ Run these from the `nymetro_eventlocator` folder with the environment activated.
 | Command | What it does |
 |---|---|
 | `nymetro_eventlocator demo --open` | Build a sample page from made-up events and open it: no config, keys or network needed |
+| `nymetro_eventlocator demo --live --open` | The same, with real upcoming events from two public library calendars (fetched once, about 20 s) |
 | `nymetro_eventlocator init` | Create a starter `config.yaml` (`--force` replaces an existing one, keeping a backup) |
 | `nymetro_eventlocator add <link>` | Add a Meetup group, Luma calendar or `.ics` link: preview, then add on confirmation (`--category`, `--name`, `--yes`) |
 | `nymetro_eventlocator check-config` | Validate `config.yaml` and say what's wrong, if anything |
