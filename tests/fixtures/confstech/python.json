@@ -1,0 +1,8 @@
+[
+  {"name": "PyExample NYC", "url": "https://example.test/pyexample", "startDate": "2027-01-16", "endDate": "2027-01-16", "city": "New York", "country": "U.S.A."},
+  {"name": "ExampleConf 2027", "url": "https://example.test/exampleconf", "startDate": "2027-08-05", "endDate": "2027-08-08", "city": "Las Vegas, NV", "country": "U.S.A.", "cfpEndDate": "2027-05-01"},
+  {"name": "Nordic Python Summit", "url": "https://example.test/nss", "startDate": "2026-11-10", "endDate": "2026-11-11", "city": "Oslo", "country": "Norway"},
+  {"name": "Online Python Days", "url": "https://example.test/osd", "startDate": "2026-12-01", "endDate": "2026-12-01", "online": true},
+  {"name": "Last Year Con", "url": "https://example.test/old", "startDate": "2025-05-01", "endDate": "2025-05-02", "city": "Boston, MA", "country": "U.S.A."},
+  {"name": "Broken", "url": "https://example.test/broken", "startDate": "not-a-date"}
+]

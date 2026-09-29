@@ -1,0 +1,11 @@
+# Optional: `pip install pre-commit && pre-commit install` to check every commit:
+# gitleaks scans for secrets; ruff lints Python (config in pyproject.toml).
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1   # keep in step with GITLEAKS_VERSION in .github/workflows/test.yml
+    hooks:
+      - id: gitleaks
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9   # keep in step with ruff in requirements-dev.lock (tests/test_ci.py checks)
+    hooks:
+      - id: ruff-check

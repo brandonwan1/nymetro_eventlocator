@@ -1,0 +1,37 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Luma//Test//EN
+BEGIN:VEVENT
+UID:evt-walk-1@lu.ma
+SUMMARY:Thursday Evening Walk
+DTSTART:20261001T230000Z
+DTEND:20261002T003000Z
+LOCATION:Bandshell (Prospect Park\, Brooklyn\, NY)
+GEO:40.6602;-73.9690
+URL:https://lu.ma/walk-thursday
+DESCRIPTION:<p>3 miles\, easy pace\, all levels. <b>Snacks after.</b></p>
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-past@lu.ma
+SUMMARY:Old event
+DTSTART:20250101T230000Z
+DTEND:20250102T003000Z
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-allday@lu.ma
+SUMMARY:All-day chess tournament
+DTSTART;VALUE=DATE:20261010
+LOCATION:Example Hall, 100 Degraw St, Brooklyn, NY
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-far@lu.ma
+SUMMARY:Next year
+DTSTART:20280101T230000Z
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-online@lu.ma
+SUMMARY:Online book chat
+DTSTART:20261003T230000Z
+LOCATION:Online
+END:VEVENT
+END:VCALENDAR

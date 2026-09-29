@@ -1,0 +1,76 @@
+region:
+  name: nyc
+  timezone: America/New_York
+  center: [40.7128, -74.0060]
+  bbox: [39.47, -75.20, 41.53, -71.77]   # south, west, north, east: the NY metro area's outer limits
+  # The NY metro area = the Census "New York-Newark-Jersey City" Metro Area (22 counties: NYC, Long Island,
+  # Westchester/Rockland/Putnam, and 12 northern/central NJ counties). Events must fall inside (or within ~300 m).
+  # Files live in nymetro_eventlocator/geo/data/. `name_key` is the property holding the display name.
+  areas:
+    - { file: nyc_boroughs.geojson, name_key: boroname }      # the five boroughs
+    - { file: nyc_metro_counties.geojson, name_key: name }    # the other 17 metro counties
+  neighborhoods:
+    - { file: nyc_neighborhoods.geojson, name_key: ntaname }  # NYC 2020 neighborhoods
+    - { file: nyc_metro_places.geojson, name_key: name }      # towns outside NYC (NJ municipalities, NY villages/hamlets)
+
+places:
+  home: null            # [lat, lon], optional: marks home on the map
+
+# Interests. With none set (as here), every event from your sources is kept in one "All events" section.
+# Add a section (`groups:`) and at least one category to start filtering; see README "Customizing your interests".
+# Categories are tried top to bottom and the first match wins. Keywords match whole words, case-insensitive.
+
+# Made-up interests used only by the test suite. They exercise every classification feature:
+# priority order, a fallback category, venue matching on/off, regex patterns, excluded words.
+groups:
+  outdoors:  { label: Outdoors }
+  games:     { label: Games }
+  talks:     { label: Talks }
+  shows:     { label: Shows }
+  community: { label: Community }
+
+categories:
+  - id: yoga
+    group: outdoors
+    keywords: [yoga, vinyasa, sound bath]
+  - id: hiking
+    group: outdoors
+    keywords: [hike, hiking, trail walk, nature walk]
+  - id: talk
+    group: talks
+    match_venue: false          # "Python Point Park" is not a Python talk
+    keywords: [tech talk, lightning talks, python meetup, python]
+    patterns: ['\bexamplecon\w*']   # "ExampleConNYC" is written as one word
+  - id: board-games
+    group: games
+    keywords: [board game, board games, game night, catan]
+  - id: trivia
+    group: games
+    keywords: [trivia, quiz night]
+  - id: concert
+    group: shows
+    keywords: [concert, live music, tour, band]
+  - id: comedy
+    group: shows
+    keywords: [comedy, stand-up, open mic, comedy club]
+  - id: community
+    group: community
+    fallback: true              # tried only after the specific categories and a feed's category hint
+    keywords: [meetup, meet up, mixer, hangout, social]
+
+exclude_keywords: [casino, toddler, for kids]
+
+exclude_online: true
+
+sources:
+  ical:
+    enabled: true
+    feeds: []
+  ticketmaster:
+    enabled: false
+    api_key: test-key
+    max_pages: 5
+    days: 90
+    window_days: 14
+    searches:
+      - { latlong: [40.7128, -74.0060], radius_miles: 20 }

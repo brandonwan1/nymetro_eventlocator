@@ -1,0 +1,16 @@
+<!doctype html>
+<!-- Synthetic fixture shaped like a Meetup event page: only the schema.org Event JSON-LD block is kept
+     (no member names, photos or other personal data). The doubled comma ("street,, Kings County") is a real Meetup quirk. -->
+<html><head>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Event",
+ "name":"Tuesday game night at Example Community Hall (+ snacks)",
+ "startDate":"2026-09-29T18:45:00-04:00","endDate":"2026-09-29T21:00:00-04:00",
+ "eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode",
+ "eventStatus":"https://schema.org/EventScheduled",
+ "location":{"@type":"Place","name":"Example Community Hall",
+   "address":{"@type":"PostalAddress","addressLocality":"Kings County","addressRegion":"NY","addressCountry":"US",
+              "streetAddress":"100 Butler street,, Kings County, NY"}},
+ "organizer":{"@type":"Organization","name":"Example Game Group","url":"https://www.meetup.com/example-group/"}}
+</script>
+</head><body><h1>Tuesday game night</h1></body></html>

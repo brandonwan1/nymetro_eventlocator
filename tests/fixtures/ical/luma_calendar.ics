@@ -1,0 +1,47 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Luma//Synthetic fixture//EN
+X-WR-CALNAME:Example Community Calendar
+BEGIN:VEVENT
+DTSTART:20220603T130000Z
+DTEND:20220603T140000Z
+DTSTAMP:20260923T042302Z
+ORGANIZER;CN="Example Organizer":MAILTO:calendar-invite@lu.ma
+UID:evt-EXAMPLE0000001@events.lu.ma
+SUMMARY:Friday Morning Walk NYC
+DESCRIPTION:Get up-to-date information at: https://luma.com/example-walk-f\n
+ \nAddress:\nExample Pier Café, 62 Example Pier, New Yor
+ k, NY 10011, USA\nUnited States\n\nHosted by Example Organizer
+LOCATION:Example Pier Café, 62 Example Pier, New York, NY 10011, USA
+GEO:40.748538;-74.008746
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20220606T130000Z
+DTEND:20220606T140000Z
+DTSTAMP:20260923T042302Z
+ORGANIZER;CN="Example Organizer":MAILTO:calendar-invite@lu.ma
+UID:evt-EXAMPLE0000002@events.lu.ma
+SUMMARY:Monday Morning Walk
+DESCRIPTION:Get up-to-date information at: https://luma.com/example-walk-m
+ \n\nAddress:\nExample Pier Café\nNew York\, New York\nUnite
+ d States\n\nHosted by Example Organizer
+LOCATION:Example Pier Café, 62 Example Pier, New York, NY 10011, USA
+GEO:40.748538;-74.008746
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20240110T130000Z
+DTEND:20240110T140000Z
+DTSTAMP:20260923T042302Z
+ORGANIZER;CN="Another Organizer":MAILTO:calendar-invite@lu.ma
+UID:evt-EXAMPLE0000003@events.lu.ma
+SUMMARY:Example Walking Club 🚶
+DESCRIPTION:Get up-to-date information at: https://luma.com/example-walk\n\n
+ Address:\nA Coffee Shop\nNew York\, New York\nUnited States\n\nHosted by An
+ other Organizer
+LOCATION:A Coffee Shop, 61 9th Ave, New York, NY 10011, USA
+GEO:40.741594;-74.005155
+STATUS:TENTATIVE
+END:VEVENT
+END:VCALENDAR

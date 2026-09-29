@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Private, per-user files: never commit
+config.yaml
+config.backup*.yaml
+overrides.yaml
+.env
+.env.*
+!.env.example
+*.cred
+*.db
+/data/
+/output/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml

@@ -1,0 +1,113 @@
+name: tests
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"   # weekly (Monday): new vulnerabilities and upstream changes show up even without new commits
+  workflow_dispatch:
+permissions:
+  contents: read
+
+# Actions are pinned to full commit SHAs (a moved tag can't change what runs); Dependabot keeps them current.
+# Tools are pinned to exact versions for the same reason.
+env:
+  UV_VERSION: "0.12.19"
+  PIP_AUDIT_VERSION: "2.10.1"
+  GITLEAKS_VERSION: "8.30.1"
+  GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"   # gitleaks_8.30.1_linux_x64.tar.gz
+
+jobs:
+  pytest:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      # Exact, hash-checked versions from the lock file, so a pass means "these versions work".
+      - run: python -m pip install -r requirements-dev.lock
+      - run: python -m pip install --no-deps -e .
+      - run: python -m pip check
+      # No real keys, no network: tests use local servers and the env/in-memory secret backends.
+      - run: python -m pytest --cov
+
+  lint:
+    # ruff, pinned by the dev lock file; rules are in pyproject.toml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements-dev.lock
+      - run: ruff check --output-format github .
+
+  lock-up-to-date:
+    # Fails if pyproject.toml's dependencies changed without re-running scripts/lock.py.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install "uv==${UV_VERSION}"
+      - run: python scripts/lock.py
+      - run: git diff --exit-code -- requirements.lock requirements-dev.lock
+
+  audit:
+    # Known vulnerabilities in any pinned dependency (PyPI advisory data).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install "pip-audit==${PIP_AUDIT_VERSION}"
+      - run: pip-audit -r requirements-dev.lock --require-hashes --disable-pip --progress-spinner off
+
+  secrets:
+    # gitleaks CLI (MIT) over the full git history, independent of anyone's local pre-commit hook.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks (checksum-verified)
+        run: |
+          f="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${f}"
+          echo "${GITLEAKS_SHA256}  ${f}" | sha256sum -c -
+          tar xzf "${f}" gitleaks
+      - run: ./gitleaks git --redact --no-banner -v .
+
+  newer-versions:
+    # Weekly/manual only, informational: do the newest allowed versions still pass? If so, run
+    # `python scripts/lock.py --upgrade` locally, test, and commit the updated lock files.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install "uv==${UV_VERSION}"
+      - run: python scripts/lock.py --upgrade
+      - run: git diff --stat -- requirements.lock requirements-dev.lock
+      - run: python -m pip install -r requirements-dev.lock && python -m pip install --no-deps -e .
+      - run: python -m pytest

@@ -1,0 +1,39 @@
+{
+  "_embedded": {
+    "events": [
+      {
+        "name": "Example DJ Live",
+        "id": "vvG1zZ9abc",
+        "url": "https://www.ticketmaster.com/event/vvG1zZ9abc",
+        "images": [{"url": "https://s1.ticketm.net/small.jpg", "width": 100}, {"url": "https://s1.ticketm.net/big.jpg", "width": 1024}],
+        "dates": {"start": {"localDate": "2026-10-09", "localTime": "20:00:00", "dateTime": "2026-10-10T00:00:00Z"}, "status": {"code": "onsale"}},
+        "classifications": [{"segment": {"name": "Music"}, "genre": {"name": "Dance/Electronic"}, "subGenre": {"name": "House"}}],
+        "priceRanges": [{"type": "standard", "currency": "USD", "min": 79.5, "max": 150}],
+        "_embedded": {"venues": [{"name": "Example Warehouse Hall", "postalCode": "11211", "city": {"name": "Brooklyn"}, "state": {"stateCode": "NY"},
+                                  "address": {"line1": "100 Frost St"}, "location": {"longitude": "-73.9385", "latitude": "40.7196"}}]}
+      },
+      {
+        "name": "Indie Band Live",
+        "id": "vvG1zZ9def",
+        "url": "https://www.ticketmaster.com/event/vvG1zZ9def",
+        "dates": {"start": {"localDate": "2026-10-12", "localTime": "19:30:00"}, "status": {"code": "onsale"}},
+        "classifications": [{"segment": {"name": "Music"}, "genre": {"name": "Rock"}, "subGenre": {"name": "Undefined"}}],
+        "_embedded": {"venues": [{"name": "Example Ballroom", "city": {"name": "New York"}, "state": {"stateCode": "NY"}, "address": {"line1": "10 Delancey St"}}]}
+      },
+      {
+        "name": "Cancelled Gig",
+        "id": "vvG1zZ9ghi",
+        "url": "https://www.ticketmaster.com/event/vvG1zZ9ghi",
+        "dates": {"start": {"dateTime": "2026-10-15T00:00:00Z"}, "status": {"code": "cancelled"}},
+        "_embedded": {"venues": [{"name": "Somewhere"}]}
+      },
+      {
+        "name": "No Date Yet",
+        "id": "vvG1zZ9jkl",
+        "url": "https://www.ticketmaster.com/event/vvG1zZ9jkl",
+        "dates": {"start": {"dateTBD": true}}
+      }
+    ]
+  },
+  "page": {"size": 200, "totalElements": 4, "totalPages": 1, "number": 0}
+}

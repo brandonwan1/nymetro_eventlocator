@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nymetro_eventlocator</title>
+<style>
+:root {
+  --bg: #f6f5f2; --surface: #ffffff; --surface-2: #efede8; --text: #1d1c1a; --muted: #6b6860; --line: #e2dfd8;
+  --accent: #2f5bd3; --warn: #a33;
+  /* section colors, assigned to sections in config order */
+  --g0: #b4418e; --g1: #1f8a5b; --g2: #c26a12; --g3: #5b4fc4; --g4: #0f7c8c; --g5: #8a6d1f;
+  --radius: 10px; --shadow: 0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141413; --surface: #1d1d1b; --surface-2: #262624; --text: #ecebe7; --muted: #a09d95; --line: #33322f;
+    --accent: #8aa8ff; --warn: #ff8a8a;
+    --g0: #e27bbd; --g1: #5cc896; --g2: #f0a456; --g3: #a99cff; --g4: #5fc9d6; --g5: #d9b75a;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141413; --surface: #1d1d1b; --surface-2: #262624; --text: #ecebe7; --muted: #a09d95; --line: #33322f;
+  --accent: #8aa8ff; --warn: #ff8a8a; --shadow: none;
+  --g0: #e27bbd; --g1: #5cc896; --g2: #f0a456; --g3: #a99cff; --g4: #5fc9d6; --g5: #d9b75a;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: inherit; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 48px; }
+header { padding: 22px 0 10px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; }
+header h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+header .meta { color: var(--muted); font-size: 13px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 6px 0 12px; }
+.tab { background: none; border: 0; padding: 9px 12px; font: inherit; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--text); border-color: var(--accent); font-weight: 600; }
+.filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.filters .wide { grid-column: 1 / -1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px;
+  padding: 5px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+select, input[type="search"] { width: 100%; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
+label.check { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
+.count { color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+.day { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 10px 0 6px; font-weight: 700;
+  font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 10px 12px; margin-bottom: 8px; display: grid; grid-template-columns: 72px 1fr; gap: 10px; }
+.card .time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; padding-top: 1px; }
+.card .title { font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.card .title:hover { text-decoration: underline; }
+.card .where, .card .desc { color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
+.card .desc { margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.badge { font-size: 12px; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.badge.g-0 { color: var(--g0); } .badge.g-1 { color: var(--g1); } .badge.g-2 { color: var(--g2); }
+.badge.g-3 { color: var(--g3); } .badge.g-4 { color: var(--g4); } .badge.g-5 { color: var(--g5); }
+.badge.reason { color: var(--warn); }
+.badge.tier-us { color: var(--accent); } .badge.tier-international { color: var(--accent); font-weight: 600; }
+.more { display: block; margin: 12px auto; }
+#map { height: 70vh; min-height: 360px; border-radius: var(--radius); border: 1px solid var(--line); }
+.empty { color: var(--muted); padding: 30px 0; text-align: center; }
+.summary { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+.pop { font: 13px/1.35 system-ui, sans-serif; color: #1d1c1a; max-height: 260px; overflow-y: auto; }
+.pop-venue { font-weight: 700; margin-bottom: 6px; }
+.pop-row { margin-bottom: 6px; } .pop-row a { color: #2f5bd3; }
+.pop-meta { color: #6b6860; font-size: 12px; }
+[hidden] { display: none !important; }
+@media (max-width: 560px) {
+  .card { grid-template-columns: 1fr; gap: 2px; }
+  .filters { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>nymetro_eventlocator · {{ region }}</h1>
+    <span class="meta">{{ count }} upcoming · updated {{ generated }}</span>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="list">Events</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="map">Map</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="rejected">Didn't qualify</button>
+  </nav>
+
+  <section id="event-filters">
+    <div class="filters">
+      <div class="chips wide" id="groups"></div>
+      <select id="category" aria-label="Category"><option value="">All categories</option></select>
+      <select id="when" aria-label="When">
+        <option value="all">Any date</option><option value="1">Next 24 hours</option><option value="weekend">This weekend</option>
+        <option value="7">Next 7 days</option><option value="30">Next 30 days</option><option value="90">Next 90 days</option>
+        <option value="365">Next 365 days</option>
+      </select>
+      <select id="tier" aria-label="Where">
+        <option value="">Anywhere</option><option value="metro">NYC metro</option><option value="us">Elsewhere in the US</option>
+        <option value="international">International</option>
+      </select>
+      <select id="area" aria-label="Area"><option value="">All areas</option></select>
+      <select id="hood" aria-label="Neighborhood"><option value="">All neighborhoods</option></select>
+      <select id="near" aria-label="Distance from home" hidden>
+        <option value="">Any distance</option><option value="2">Within 2 km of home</option>
+        <option value="5">Within 5 km</option><option value="10">Within 10 km</option>
+      </select>
+      <label class="check"><input type="checkbox" id="free"> Free only</label>
+      <input class="wide" type="search" id="q" placeholder="Search title, venue, artist…" aria-label="Search">
+    </div>
+    <div class="count" id="count"></div>
+    <div class="count" id="range-note" hidden>Most sources list events about 90 days ahead; further out it's mainly conferences.</div>
+  </section>
+
+  <section id="tab-list"><div id="list"></div><button class="chip more" id="more" hidden>Show more</button></section>
+  <section id="tab-map" hidden><div id="map"></div><p class="count">Only events with a known location are shown.</p></section>
+  <section id="tab-rejected" hidden>
+    <p class="summary">{{ summary }}</p>
+    <div class="filters">
+      <select id="reason" aria-label="Reason"><option value="">All reasons</option></select>
+      <select id="rsource" aria-label="Source"><option value="">All sources</option></select>
+      <input class="wide" type="search" id="rq" placeholder="Search rejected events…" aria-label="Search rejected">
+    </div>
+    <div class="count" id="rcount"></div>
+    <div id="rlist"></div><button class="chip more" id="rmore" hidden>Show more</button>
+  </section>
+</div>
+
+<script id="data" type="application/json">{{ data_json | safe }}</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const PAGE = 200;
+  const state = { group: "", shown: PAGE, rshown: PAGE };
+  const catGroup = Object.fromEntries(D.categories.map(c => [c.id, c.group]));
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+                  set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+  // --- options --------------------------------------------------------------------------
+  const groupBtn = (id, label) => {
+    const b = el("button", "chip", label); b.type = "button"; b.dataset.group = id;
+    b.setAttribute("aria-pressed", String(state.group === id));
+    b.onclick = () => { state.group = id; state.shown = PAGE; fillCategories(); update(); };
+    return b;
+  };
+  // Sections get colors by their order in config.yaml (6 slots, then they repeat).
+  const SLOTS = ["#b4418e", "#1f8a5b", "#c26a12", "#5b4fc4", "#0f7c8c", "#8a6d1f"];  // fallbacks for --g0..--g5
+  const GROUP_IDS = Object.keys(D.groups);
+  const groupSlot = g => { const i = GROUP_IDS.indexOf(g); return i < 0 ? "x" : String(i % SLOTS.length); };
+  $("groups").append(groupBtn("", "All"), ...Object.entries(D.groups).map(([id, label]) => groupBtn(id, label)));
+  const addOptions = (sel, values) => values.forEach(v => { const o = el("option", null, v); o.value = v; sel.append(o); });
+  function fillCategories() {
+    const sel = $("category"), keep = sel.value;
+    sel.length = 1;
+    addOptions(sel, D.categories.filter(c => !state.group || c.group === state.group).map(c => c.id));
+    sel.value = [...sel.options].some(o => o.value === keep) ? keep : "";
+    document.querySelectorAll("#groups .chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.group === state.group)));
+  }
+  fillCategories();
+  addOptions($("area"), [...new Set(D.events.map(e => e.area).filter(Boolean))].sort());
+  function fillHoods() {
+    const area = $("area").value, sel = $("hood"), keep = sel.value;
+    sel.length = 1;
+    addOptions(sel, [...new Set(D.events.filter(e => !area || e.area === area).map(e => e.hood).filter(Boolean))].sort());
+    sel.value = [...sel.options].some(o => o.value === keep) ? keep : "";
+  }
+  fillHoods();
+  if (D.home) $("near").hidden = false;
+  addOptions($("reason"), [...new Set(D.rejections.map(r => r.reason))].sort());
+  addOptions($("rsource"), [...new Set(D.rejections.map(r => r.source))].sort());
+
+  // --- filtering ------------------------------------------------------------------------
+  const km = (a, b, c, d) => { const r = Math.PI / 180, x = Math.sin((c - a) * r / 2) ** 2 +
+    Math.cos(a * r) * Math.cos(c * r) * Math.sin((d - b) * r / 2) ** 2; return 12742 * Math.asin(Math.sqrt(x)); };
+  function dateOk(e, when) {
+    if (when === "all") return true;
+    const s = new Date(e.start), now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (when === "weekend") {                            // Fri 6pm – Sun midnight; the current one if it's the weekend
+      const dow = now.getDay();                          // 0 = Sun … 6 = Sat
+      const toFri = dow === 0 ? -2 : dow === 6 ? -1 : 5 - dow;
+      const fri = new Date(startOfDay.getFullYear(), startOfDay.getMonth(), startOfDay.getDate() + toFri);
+      const from = new Date(Math.max(now, new Date(fri.getFullYear(), fri.getMonth(), fri.getDate(), 18)));
+      const to = new Date(fri.getFullYear(), fri.getMonth(), fri.getDate() + 3);
+      return s >= from && s < to;
+    }
+    return s < new Date(now.getTime() + Number(when) * 864e5);
+  }
+  function filtered() {
+    const cat = $("category").value, when = $("when").value, area = $("area").value, hood = $("hood").value;
+    const near = Number($("near").value || 0), free = $("free").checked, q = $("q").value.trim().toLowerCase();
+    const tier = $("tier").value;
+    return D.events.filter(e =>
+      (!state.group || e.group === state.group) && (!cat || e.category === cat) && dateOk(e, when) &&
+      (!area || e.area === area) && (!hood || e.hood === hood) && (!tier || e.tier === tier) &&
+      (!free || /free/i.test(e.price)) &&
+      (!near || (D.home && e.lat != null && km(D.home[0], D.home[1], e.lat, e.lon) <= near)) &&
+      (!q || [e.title, e.venue, e.hood, e.area, e.place, e.desc, ...(e.tags || [])].join(" ").toLowerCase().includes(q)));
+  }
+
+  // --- rendering ------------------------------------------------------------------------
+  function card(e) {
+    const c = el("article", "card");
+    c.append(el("div", "time", e.time));
+    const body = el("div");
+    const t = e.url ? el("a", "title", e.title) : el("span", "title", e.title);
+    if (e.url) { t.href = e.url; t.target = "_blank"; t.rel = "noopener noreferrer"; }
+    body.append(t);
+    const where = (e.tier === "metro" ? [e.venue, e.hood, e.area] : [e.venue !== e.title ? e.venue : "", e.place])
+      .filter((v, i, a) => v && a.indexOf(v) === i).join(" · ");
+    if (where) body.append(el("div", "where", where));
+    if (e.desc) body.append(el("div", "desc", e.desc));
+    const b = el("div", "badges");
+    b.append(el("span", "badge g-" + groupSlot(catGroup[e.category] || e.group), e.category));
+    if (e.tier && e.tier !== "metro") b.append(el("span", "badge tier-" + e.tier, e.tier_label));
+    if (e.price) b.append(el("span", "badge", e.price));
+    b.append(el("span", "badge", e.source));
+    body.append(b);
+    c.append(body);
+    return c;
+  }
+  function renderList(items) {
+    const list = $("list"); list.replaceChildren();
+    if (!items.length) { list.append(el("p", "empty", "No events match these filters.")); $("more").hidden = true; return; }
+    let day = null;
+    for (const e of items.slice(0, state.shown)) {
+      if (e.day !== day) { day = e.day; list.append(el("div", "day", day)); }
+      list.append(card(e));
+    }
+    $("more").hidden = items.length <= state.shown;
+  }
+  // Map: MapLibre + OpenFreeMap vector tiles (no key, no usage limits; attribution is added by MapLibre).
+  // Events are clustered (numbered bubbles split apart as you zoom); a venue with several events lists them all.
+  let map = null, mapReady = false, pendingItems = [];
+  const dark = () => matchMedia("(prefers-color-scheme: dark)").matches;
+  function toGeoJSON(items) {
+    return { type: "FeatureCollection", features: items.filter(e => e.lat != null).map(e => ({
+      type: "Feature", geometry: { type: "Point", coordinates: [e.lon, e.lat] },
+      properties: { idx: D.events.indexOf(e), group: e.group } })) };
+  }
+  function fitTo(items) {
+    const withCoords = items.filter(e => e.lat != null);
+    const metro = withCoords.filter(e => e.tier === "metro");
+    const pts = metro.length ? metro : withCoords;
+    if (!pts.length) return;
+    const b = new maplibregl.LngLatBounds([pts[0].lon, pts[0].lat], [pts[0].lon, pts[0].lat]);
+    pts.forEach(e => b.extend([e.lon, e.lat]));
+    map.fitBounds(b, { padding: 40, maxZoom: 14, duration: 0 });
+  }
+  function eventLine(e) {
+    const row = el("div", "pop-row");
+    const t = el(e.url ? "a" : "strong", null, e.title);
+    if (e.url) { t.href = e.url; t.target = "_blank"; t.rel = "noopener noreferrer"; }
+    row.append(t, el("div", "pop-meta", `${e.day} ${e.time}`));
+    return row;
+  }
+  function popupNode(events) {
+    const box = el("div", "pop");
+    const first = events[0];
+    box.append(el("div", "pop-venue", [first.venue, first.hood].filter(Boolean).join(" · ") || "Event"));
+    events.slice(0, 8).forEach(e => box.append(eventLine(e)));
+    if (events.length > 8) box.append(el("div", "pop-meta", `+${events.length - 8} more here — use the list or search the venue`));
+    return box;
+  }
+  function renderMap(items) {
+    if (typeof maplibregl === "undefined") return;
+    pendingItems = items;
+    if (!map) {
+      const css = getComputedStyle(document.documentElement);
+      const color = (v, d) => css.getPropertyValue(v).trim() || d;
+      map = new maplibregl.Map({ container: "map", style: dark() ? D.map.style_dark : D.map.style_light,
+                                 center: [D.center[1], D.center[0]], zoom: 10 });
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+      map.on("load", () => {
+        map.addSource("events", { type: "geojson", data: toGeoJSON(pendingItems),
+                                  cluster: true, clusterRadius: 40, clusterMaxZoom: 15 });
+        map.addLayer({ id: "clusters", type: "circle", source: "events", filter: ["has", "point_count"], paint: {
+          "circle-color": color("--accent", "#2f5bd3"), "circle-opacity": 0.85,
+          "circle-stroke-width": 2, "circle-stroke-color": "#fff",
+          "circle-radius": ["step", ["coalesce", ["get", "point_count"], 0], 14, 10, 18, 50, 24, 200, 30] } });
+        map.addLayer({ id: "cluster-count", type: "symbol", source: "events", filter: ["has", "point_count"],
+          layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 12, "text-font": ["Noto Sans Regular"] },
+          paint: { "text-color": "#fff" } });
+        map.addLayer({ id: "events", type: "circle", source: "events", filter: ["!", ["has", "point_count"]], paint: {
+          "circle-radius": 7, "circle-opacity": 0.9, "circle-stroke-width": 1.5, "circle-stroke-color": "#fff",
+          "circle-color": GROUP_IDS.length
+            ? ["match", ["get", "group"],
+               ...GROUP_IDS.flatMap((g, i) => [g, color("--g" + (i % SLOTS.length), SLOTS[i % SLOTS.length])]), "#888"]
+            : color("--accent", "#2f5bd3") } });
+        map.on("click", "clusters", async ev => {
+          const f = map.queryRenderedFeatures(ev.point, { layers: ["clusters"] })[0];
+          const src = map.getSource("events");
+          const zoom = await src.getClusterExpansionZoom(f.properties.cluster_id);
+          if (zoom <= 15) { map.easeTo({ center: f.geometry.coordinates, zoom }); return; }
+          // Past the last zoom level everything left is at one venue: list it.
+          const leaves = await src.getClusterLeaves(f.properties.cluster_id, 500, 0);
+          const evs = leaves.map(l => D.events[l.properties.idx]).sort((a, b) => a.start.localeCompare(b.start));
+          new maplibregl.Popup({ offset: 12, maxWidth: "320px" }).setLngLat(f.geometry.coordinates)
+            .setDOMContent(popupNode(evs)).addTo(map);
+        });
+        map.on("click", "events", ev => {
+          const evs = map.queryRenderedFeatures(ev.point, { layers: ["events"] })
+            .map(f => D.events[f.properties.idx]).sort((a, b) => a.start.localeCompare(b.start));
+          new maplibregl.Popup({ offset: 10, maxWidth: "320px" }).setLngLat(ev.lngLat).setDOMContent(popupNode(evs)).addTo(map);
+        });
+        for (const layer of ["clusters", "events"]) {
+          map.on("mouseenter", layer, () => { map.getCanvas().style.cursor = "pointer"; });
+          map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
+        }
+        mapReady = true;
+        fitTo(pendingItems);
+      });
+    } else if (mapReady) {
+      map.getSource("events").setData(toGeoJSON(items));
+      fitTo(items);
+    }
+    setTimeout(() => map.resize(), 0);
+  }
+  function update() {
+    const items = filtered();
+    $("count").textContent = `${items.length} event${items.length === 1 ? "" : "s"}`;
+    if (!$("tab-list").hidden) renderList(items);
+    if (!$("tab-map").hidden) renderMap(items);
+  }
+  function updateRejected() {
+    const reason = $("reason").value, src = $("rsource").value, q = $("rq").value.trim().toLowerCase();
+    const items = D.rejections.filter(r => (!reason || r.reason === reason) && (!src || r.source === src) &&
+      (!q || [r.title, r.venue, r.detail].join(" ").toLowerCase().includes(q)));
+    $("rcount").textContent = `${items.length} rejected`;
+    const list = $("rlist"); list.replaceChildren();
+    for (const r of items.slice(0, state.rshown)) {
+      const c = el("article", "card");
+      c.append(el("div", "time", r.day));
+      const body = el("div");
+      const t = r.url ? el("a", "title", r.title) : el("span", "title", r.title);
+      if (r.url) { t.href = r.url; t.target = "_blank"; t.rel = "noopener noreferrer"; }
+      body.append(t);
+      if (r.venue) body.append(el("div", "where", r.venue));
+      const b = el("div", "badges");
+      b.append(el("span", "badge reason", r.reason_label + (r.detail ? ` — ${r.detail}` : "")), el("span", "badge", r.source));
+      body.append(b); c.append(body); list.append(c);
+    }
+    $("rmore").hidden = items.length <= state.rshown;
+    if (!items.length) list.append(el("p", "empty", "Nothing rejected with these filters."));
+  }
+
+  // --- wiring -----------------------------------------------------------------------------
+  ["category", "hood", "near", "free", "tier"].forEach(id => $(id).addEventListener("change", () => { state.shown = PAGE; update(); }));
+  function whenChanged() {
+    $("range-note").hidden = !["90", "365"].includes($("when").value);
+    store.set("nymetro_eventlocator.when", $("when").value);
+  }
+  $("when").addEventListener("change", () => { whenChanged(); state.shown = PAGE; update(); });
+  const savedWhen = store.get("nymetro_eventlocator.when");                 // remember the last window per browser
+  if (savedWhen && [...$("when").options].some(o => o.value === savedWhen)) $("when").value = savedWhen;
+  whenChanged();
+  $("area").addEventListener("change", () => { fillHoods(); state.shown = PAGE; update(); });
+  let timer; $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { state.shown = PAGE; update(); }, 150); });
+  $("more").onclick = () => { state.shown += PAGE; update(); };
+  ["reason", "rsource"].forEach(id => $(id).addEventListener("change", () => { state.rshown = PAGE; updateRejected(); }));
+  $("rq").addEventListener("input", () => { state.rshown = PAGE; updateRejected(); });
+  $("rmore").onclick = () => { state.rshown += PAGE; updateRejected(); };
+
+  let mapLoading = null;
+  function loadMapLibrary() {
+    if (typeof maplibregl !== "undefined") return Promise.resolve();
+    return mapLoading ||= new Promise((res, rej) => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet"; link.href = D.map.css; document.head.append(link);
+      const s = document.createElement("script");
+      s.src = D.map.js; s.onload = res; s.onerror = rej; document.head.append(s);
+    });
+  }
+  function showTab(name) {
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === name)));
+    $("tab-list").hidden = name !== "list";
+    $("tab-map").hidden = name !== "map";
+    $("tab-rejected").hidden = name !== "rejected";
+    $("event-filters").hidden = name === "rejected";
+    store.set("nymetro_eventlocator.tab", name);
+    if (name === "rejected") updateRejected();
+    else if (name === "map") loadMapLibrary().then(update).catch(() => { $("map").textContent = "Map library failed to load."; });
+    else update();
+  }
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => showTab(t.dataset.tab));
+  showTab(store.get("nymetro_eventlocator.tab") || "list");
+})();
+</script>
+</body>
+</html>

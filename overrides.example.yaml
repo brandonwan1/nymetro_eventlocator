@@ -1,0 +1,5 @@
+# Manual corrections, applied after the keyword rules. Copy to overrides.yaml (private, git-ignored).
+force_include: {}    # "<event url>": <category id>
+force_exclude: []    # - "<event url>"
+venues: {}           # "<venue name>": [lat, lon] — for places the geocoders can't find, e.g.
+                     #   "Example Plaza Atrium": [40.7614, -73.9730]

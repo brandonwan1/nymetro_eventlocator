@@ -1,0 +1,78 @@
+# nymetro_eventlocator example configuration for the New York metro area.
+# `nymetro_eventlocator init` writes an equivalent config.yaml for you.
+# Copy to config.yaml and edit (config.yaml is private and git-ignored).
+# Secrets are never written here: ${VAR} is resolved from the OS keyring / systemd-creds / environment.
+# Store them with:  nymetro_eventlocator secrets set VAR_NAME
+# Source verdicts and reasons: docs/sources-compliance.md
+
+region:
+  name: nyc
+  timezone: America/New_York
+  center: [40.7128, -74.0060]
+  bbox: [39.47, -75.20, 41.53, -71.77]   # south, west, north, east: the NY metro area's outer limits
+  # The NY metro area = the Census "New York-Newark-Jersey City" Metro Area (22 counties: NYC, Long Island,
+  # Westchester/Rockland/Putnam, and 12 northern/central NJ counties). Events must fall inside (or within ~300 m).
+  # Files live in nymetro_eventlocator/geo/data/. `name_key` is the property holding the display name.
+  areas:
+    - { file: nyc_boroughs.geojson, name_key: boroname }      # the five boroughs
+    - { file: nyc_metro_counties.geojson, name_key: name }    # the other 17 metro counties
+  neighborhoods:
+    - { file: nyc_neighborhoods.geojson, name_key: ntaname }  # NYC 2020 neighborhoods
+    - { file: nyc_metro_places.geojson, name_key: name }      # towns outside NYC (NJ municipalities, NY villages/hamlets)
+
+places:
+  home: null            # [lat, lon], optional: marks home on the map
+
+# Interests. With none set (as here), every event from your sources is kept in one "All events" section.
+# Add a section (`groups:`) and at least one category to start filtering; see README "Customizing your interests".
+# Categories are tried top to bottom and the first match wins. Keywords match whole words, case-insensitive.
+groups: {}
+categories: []
+# For example:
+# groups:
+#   outdoors: { label: Outdoors }
+# categories:
+#   - id: yoga
+#     group: outdoors
+#     keywords: [yoga, vinyasa, sound bath]
+
+exclude_keywords: []   # drop events mentioning any of these words, e.g. [for kids, toddler]
+
+exclude_online: true   # drop virtual/Zoom events
+
+sources:
+  ical:
+    enabled: true
+    # Meetup feeds have no location: read venue/address from each event's page once a week (robots.txt allows it).
+    details: { hosts: [www.meetup.com], max_per_run: 100, refresh_days: 7 }
+    # Calendar feeds you follow. Easiest: `nymetro_eventlocator add <link>` fills this in for you.
+    # `category` is optional: a hint used only when no keyword matches.
+    feeds: []
+    # feeds:
+    #   - { name: my-group, url: "https://www.meetup.com/<group-name>/events/ical/" }
+    #   - { name: my-calendar, url: "https://api.lu.ma/ics/get?entity=calendar&id=cal-XXXXXXXX" }
+  ticketmaster:
+    enabled: true                      # on by default; set to false to turn this source off
+    api_key: ${TICKETMASTER_API_KEY}   # get a free key at developer.ticketmaster.com, then:
+                                        #   nymetro_eventlocator secrets set TICKETMASTER_API_KEY
+                                        # (without a key, this source logs an error each run and returns nothing)
+    # classification: music            # optional: music, sports, arts & theatre, family, ...
+    max_pages: 5                       # per search; 200 events/page, API caps at 1000
+    days: 90
+    window_days: 14                    # shorter windows stay under the 1000-result cap in busy areas
+    searches:   # circles covering the NY metro area; events outside it are rejected as out_of_region
+      - { latlong: [40.7128, -74.0060], radius_miles: 20 }   # NYC, Hudson/Essex/Bergen/Union, western Nassau
+      - { latlong: [40.8500, -72.9500], radius_miles: 30 }   # Long Island (Nassau/Suffolk)
+      - { latlong: [41.1500, -73.8500], radius_miles: 25 }   # Westchester, Rockland, Putnam
+      - { latlong: [40.9500, -74.6000], radius_miles: 30 }   # Morris, Passaic, Sussex, Somerset, Hunterdon
+      - { latlong: [40.2500, -74.2500], radius_miles: 30 }   # Middlesex, Monmouth, Ocean
+  eventbrite:
+    enabled: false        # needs EVENTBRITE_TOKEN (secrets set) + organizer/venue ids
+    token: ${EVENTBRITE_TOKEN}
+    organizers: []
+    venues: []
+
+web:
+  map:   # OpenFreeMap vector tiles: free, no key or limits. (OpenStreetMap's own tiles block file:// pages.)
+    style_light: https://tiles.openfreemap.org/styles/positron
+    style_dark: https://tiles.openfreemap.org/styles/dark
