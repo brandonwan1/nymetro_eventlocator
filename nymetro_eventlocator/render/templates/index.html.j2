@@ -153,7 +153,11 @@ label.check { display: flex; align-items: center; gap: 6px; font-size: 14px; col
   const SLOTS = ["#b4418e", "#1f8a5b", "#c26a12", "#5b4fc4", "#0f7c8c", "#8a6d1f"];  // fallbacks for --g0..--g5
   const GROUP_IDS = Object.keys(D.groups);
   const groupSlot = g => { const i = GROUP_IDS.indexOf(g); return i < 0 ? "x" : String(i % SLOTS.length); };
-  $("groups").append(groupBtn("", "All"), ...Object.entries(D.groups).map(([id, label]) => groupBtn(id, label)));
+  if (GROUP_IDS.length > 1) {
+    $("groups").append(groupBtn("", "All"), ...Object.entries(D.groups).map(([id, label]) => groupBtn(id, label)));
+  } else {
+    $("groups").hidden = true;  // one section (e.g. no interests set): nothing to switch between
+  }
   const addOptions = (sel, values) => values.forEach(v => { const o = el("option", null, v); o.value = v; sel.append(o); });
   function fillCategories() {
     const sel = $("category"), keep = sel.value;

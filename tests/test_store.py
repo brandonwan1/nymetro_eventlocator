@@ -99,7 +99,8 @@ def test_existing_database_is_backed_up_before_migrating(tmp_path, make_event):
     s.close()
     Store(db).close()
     backups = list(tmp_path.glob("events.before-v*.db"))
-    assert len(backups) == 1 and backups[0].name.startswith("events.before-v3-")
+    newest = max(int(f.name.split("_", 1)[0]) for f in MIGRATIONS.glob("*.sql"))
+    assert len(backups) == 1 and backups[0].name.startswith(f"events.before-v{newest}-")
     import sqlite3
     conn = sqlite3.connect(backups[0])
     assert conn.execute("PRAGMA user_version").fetchone()[0] == 2

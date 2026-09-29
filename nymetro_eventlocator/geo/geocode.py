@@ -36,6 +36,15 @@ GENERIC = {
 }
 
 
+# Kinds of facility: shared by many different places ("XYZ Tennis Courts" vs "Example Valley Park Tennis Courts"),
+# so they never count as the distinctive part of a name.
+FACILITY = {
+    "tennis", "court", "courts", "field", "fields", "ballfield", "ballfields", "playground", "pool", "track", "gym",
+    "rink", "courtyard", "lawn", "entrance", "gate", "bandshell", "pavilion", "fieldhouse", "basketball", "handball",
+    "baseball", "softball",
+}
+
+
 def clean_query(q: str) -> str:
     """Drop notes in parentheses, cross streets ("11 W 40th St and Fifth Avenue") and repeated city/state parts."""
     q = re.sub(r"\([^)]*\)", " ", q)
@@ -50,11 +59,22 @@ def clean_query(q: str) -> str:
 
 
 def _words(text: str) -> set[str]:
-    return {w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in GENERIC and len(w) > 1}
+    return {w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in GENERIC and w not in FACILITY and len(w) > 1}
+
+
+def venue_core(name: str) -> str:
+    """The place a venue is part of: "Example Valley Park Tennis Courts" -> "Example Valley Park".
+    Empty when there is nothing to strip (so callers don't repeat the same lookup)."""
+    words = name.split()
+    while words and words[-1].lower().strip(".,") in FACILITY:
+        words.pop()
+    core = " ".join(words)
+    return core if core and core != name.strip() else ""
 
 
 def plausible(query: str, label: str) -> bool:
-    """A match must share a distinctive word with the query ('bryant', '40th', '599'), not just 'park' or 'ny'."""
+    """A match must share a distinctive word with the query ('bryant', '40th', '599'), not just 'park', 'ny'
+    or a kind of facility ('tennis courts')."""
     want = _words(query)
     return not want or bool(want & _words(label))
 

@@ -46,10 +46,15 @@ What you should see:
 $ nymetro_eventlocator demo --open
 wrote output/demo.html: 15 sample events, 6 in the "Didn't qualify" tab (all made up, nothing fetched)
 $ nymetro_eventlocator run
-ical: 19 parsed
-kept 19 (19 new), swept 0 stale; 26 requests, 0 robots-skipped
+ical: 8 parsed
+ticketmaster: 0 parsed
+kept 8 (8 new), swept 0 stale; 11 requests, 0 robots-skipped
 Rejected 0
+WARNING ticketmaster: TICKETMASTER_API_KEY is not set
 ```
+Your numbers will differ. The Ticketmaster warning is expected until you set a key (step 4 below), or turn it off with
+`enabled: false` under `sources: ticketmaster:` in `config.yaml`. The first run can take a minute or two: for Meetup
+events it politely visits each event page (5 s apart) to find the venue.
 Want sections (like the screenshots) instead of one list? Start from
 [examples/config.filtered.yaml](examples/config.filtered.yaml); see [Customizing your interests](#customizing-your-interests).
 The numbered steps below explain each part in more detail.

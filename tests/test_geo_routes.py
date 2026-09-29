@@ -294,6 +294,54 @@ def test_plausible_rejects_generic_only_matches():
     assert plausible("100 Johnson Ave", "100 Johnson Avenue, Brooklyn, NY, USA")
 
 
+def test_facility_words_alone_are_not_a_match():
+    # Found testing the quick start 2026-09-29: GeoSearch's top answer for "Example Valley Park Tennis Courts" was
+    # a different park's tennis courts, miles away. Sharing only "tennis courts" must not count.
+    assert not plausible("Example Valley Park Tennis Courts", "XYZ TENNIS COURTS, Springfield Gardens, NY, USA")
+    assert plausible("Example Valley Park", "EXAMPLE VALLEY PARK, Middle Village, NY, USA")
+
+
+@pytest.mark.parametrize("name, core", [
+    ("Example Valley Park Tennis Courts", "Example Valley Park"),
+    ("Example Park Basketball Court", "Example Park"),
+    ("Example Community Hall", ""),        # nothing to strip: no second lookup
+    ("Tennis Courts", ""),
+])
+def test_venue_core(name, core):
+    from nymetro_eventlocator.geo.geocode import venue_core
+    assert venue_core(name) == core
+
+
+class ByQueryClient:
+    """Fake GeoSearch that answers per query text, like the real one did for this venue."""
+
+    def __init__(self, answers):
+        self.answers, self.calls = answers, []
+
+    def get(self, url, params=None, **kw):
+        self.calls.append(params["text"])
+        label, lat, lon = self.answers.get(params["text"], ("Nowhere", 0, 0))
+
+        class R:
+            def json(self_inner):
+                return {"features": [{"geometry": {"coordinates": [lon, lat]},
+                                      "properties": {"confidence": 0.8, "label": label}}]}
+        return R()
+
+
+def test_venue_falls_back_to_the_place_it_is_part_of(cfg, store, make_event):
+    c = ByQueryClient({
+        "Example Valley Park Tennis Courts": ("XYZ TENNIS COURTS, Springfield Gardens, NY, USA", 40.66903, -73.75775),
+        "Example Valley Park": ("EXAMPLE VALLEY PARK, Middle Village, NY, USA", 40.72007, -73.88114),
+    })
+    e = make_event("Tennis", venue_name="Example Valley Park Tennis Courts",
+                   address="78th Street and Example Blvd South, Queens County, NY")
+    kept, _ = enrich([e], cfg, Geocoder(store, c))
+    assert (kept[0].lat, kept[0].lon) == (40.72007, -73.88114) and kept[0].borough == "Queens"
+    assert "Middle Village" in kept[0].neighborhood
+    assert c.calls[-2:] == ["Example Valley Park Tennis Courts", "Example Valley Park"]
+
+
 def test_geosearch_implausible_match_is_a_miss(store):
     c = FakeClient([{"geometry": {"coordinates": [-73.91468, 40.60959]},
                      "properties": {"confidence": 0.8, "label": "Marine Park, Brooklyn, New York, NY, USA"}}])

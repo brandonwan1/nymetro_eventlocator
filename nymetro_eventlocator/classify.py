@@ -78,7 +78,7 @@ class Classifier:
                     continue
                 if where == "description":
                     text = e.description
-                else:  # e.g. career topics never match a venue name ("Juniper Valley Park" isn't Juniper Networks)
+                else:  # match_venue: false never matches a venue name ("Python Cafe" isn't a Python talk)
                     text = with_venue if cat.match_venue else e.title
                 for kw, rx in rules:
                     if rx.search(text):

@@ -130,3 +130,9 @@ def test_template_names_no_sections():
     text = (TEMPLATES / "index.html.j2").read_text(encoding="utf-8")
     for name in ("music", "sports", "social", "career", "outdoors"):
         assert name not in text.lower(), name
+
+
+def test_section_chips_hidden_when_there_is_only_one_section():
+    from nymetro_eventlocator.render.page import TEMPLATES
+    text = (TEMPLATES / "index.html.j2").read_text(encoding="utf-8")
+    assert "if (GROUP_IDS.length > 1)" in text and '$("groups").hidden = true' in text

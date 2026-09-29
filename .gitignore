@@ -19,3 +19,6 @@ overrides.yaml
 .coverage.*
 htmlcov/
 coverage.xml
+
+# created by `pip install .`
+build/

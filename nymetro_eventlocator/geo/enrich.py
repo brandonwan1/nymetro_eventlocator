@@ -11,7 +11,7 @@ from shapely.geometry import Point, shape
 from shapely.strtree import STRtree
 
 from nymetro_eventlocator.config import Config
-from nymetro_eventlocator.geo.geocode import NON_NYC, Geocoder
+from nymetro_eventlocator.geo.geocode import NON_NYC, Geocoder, venue_core
 from nymetro_eventlocator.models import Event, Rejection
 
 DATA = Path(__file__).parent / "data"
@@ -111,8 +111,12 @@ def enrich(events: list[Event], cfg: Config, geocoder: Geocoder | None,
             hit = geocoder.lookup(e.address or e.venue_name)
             # Venue-name lookups go to NYC GeoSearch, so never for places known to be outside NYC
             # (it would return a same-named NYC match).
-            if hit is None and e.address and e.venue_name and not NON_NYC.search(e.address):
-                hit = geocoder.lookup(e.venue_name)
+            if hit is None and e.venue_name and not NON_NYC.search(e.address):
+                if e.address:
+                    hit = geocoder.lookup(e.venue_name)
+                core = venue_core(e.venue_name)  # "X Park Tennis Courts" -> "X Park"
+                if hit is None and core:
+                    hit = geocoder.lookup(core)
             if hit:
                 e.lat, e.lon = hit
                 e.extra["geocoded"] = True
