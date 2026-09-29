@@ -342,6 +342,25 @@ def test_venue_falls_back_to_the_place_it_is_part_of(cfg, store, make_event):
     assert c.calls[-2:] == ["Example Valley Park Tennis Courts", "Example Valley Park"]
 
 
+def test_unreachable_geocoder_is_skipped_for_the_rest_of_the_run(store, caplog):
+    # Found 2026-09-29 when GeoSearch was down: every lookup retried and logged two lines (48 lines for 8 events).
+    from nymetro_eventlocator.http.polite import FetchError
+
+    class Down:
+        calls = 0
+
+        def get(self, url, params=None, **kw):
+            Down.calls += 1
+            raise FetchError("robots.txt unavailable (status 0); host blocked")
+
+    g = Geocoder(store, Down())
+    with caplog.at_level("WARNING"):
+        assert [g.lookup(q) for q in ("Example Hall", "Other Hall", "Example Hall")] == [None, None, None]
+    assert Down.calls == 1                                   # asked once, then skipped
+    assert len([r for r in caplog.records if "unavailable" in r.getMessage()]) == 1
+    assert store.geocode_get("Example Hall") is None         # failures aren't cached: retried next run
+
+
 def test_geosearch_implausible_match_is_a_miss(store):
     c = FakeClient([{"geometry": {"coordinates": [-73.91468, 40.60959]},
                      "properties": {"confidence": 0.8, "label": "Marine Park, Brooklyn, New York, NY, USA"}}])

@@ -84,6 +84,7 @@ class Geocoder:
         self.store = store
         self.client = client
         self.remaining = max_lookups  # new network lookups allowed this run
+        self.unavailable: set[str] = set()  # services that failed this run: not asked again until the next run
 
     def lookup(self, query: str) -> tuple[float, float] | None:
         query = clean_query(query)
@@ -92,14 +93,20 @@ class Geocoder:
         cached = self.store.geocode_get(query)
         if cached is not None:
             return None if cached[0] is None else cached
-        if self.client is None or self.remaining <= 0:
+        service = "US Census geocoder" if NON_NYC.search(query) else "NYC GeoSearch"
+        if self.client is None or self.remaining <= 0 or service in self.unavailable:
             return None
         self.remaining -= 1
         try:
-            hit = self._census(query) if NON_NYC.search(query) else self._geosearch(query)
-        except (FetchError, ValueError, KeyError) as e:
-            log.warning("geocode failed for %r: %s", query, e)
+            hit = self._census(query) if service == "US Census geocoder" else self._geosearch(query)
+        except FetchError as e:  # unreachable, blocked or refused: stop asking it for the rest of this run
+            self.unavailable.add(service)
+            log.warning("%s unavailable (%s); skipping it for the rest of this run. Events without a location "
+                        "are kept, and looked up again next run.", service, e)
             return None  # not cached, so it's retried next run
+        except (ValueError, KeyError) as e:
+            log.warning("geocode failed for %r: %s", query, e)
+            return None
         self.store.geocode_put(query, *(hit or (None, None)))
         return hit
 
